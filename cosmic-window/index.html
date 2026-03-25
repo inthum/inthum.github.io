@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INTHUM · Cosmic Window</title>
+  <meta name="description" content="A calm procedural cosmic scene with sparse stars, subtle expansion and rare meteors.">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg-a: #010205;
+      --bg-b: #050914;
+      --bg-c: #0a1222;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(22, 38, 72, 0.26), transparent 34%),
+        radial-gradient(circle at 72% 18%, rgba(58, 92, 168, 0.11), transparent 24%),
+        linear-gradient(180deg, var(--bg-c) 0%, var(--bg-b) 46%, var(--bg-a) 100%);
+      color: rgba(230, 238, 255, 0.9);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .signature {
+      position: fixed;
+      left: 18px;
+      bottom: 16px;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(225, 235, 255, 0.34);
+      user-select: none;
+      pointer-events: none;
+      text-shadow: 0 0 24px rgba(120, 160, 255, 0.08);
+    }
+
+    @media (max-width: 720px) {
+      .signature {
+        left: 12px;
+        bottom: 10px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="scene" aria-label="Janela cósmica"></canvas>
+  <div class="signature">Cosmic Window</div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('scene');
+      const ctx = canvas.getContext('2d', { alpha: false });
+
+      const TAU = Math.PI * 2;
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+
+      function createSeed() {
+        const buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        return buf[0] ^ (Date.now() & 0xffffffff);
+      }
+
+      function createPRNG(seed) {
+        let a = seed >>> 0;
+        return function rand() {
+          a += 0x6D2B79F5;
+          let t = a;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function hash2(ix, iy) {
+        const s = Math.sin(ix * 127.1 + iy * 311.7) * 43758.5453123;
+        return s - Math.floor(s);
+      }
+
+      function valueNoise(x, y) {
+        const xi = Math.floor(x);
+        const yi = Math.floor(y);
+        const xf = x - xi;
+        const yf = y - yi;
+
+        const a = hash2(xi, yi);
+        const b = hash2(xi + 1, yi);
+        const c = hash2(xi, yi + 1);
+        const d = hash2(xi + 1, yi + 1);
+
+        const u = xf * xf * (3 - 2 * xf);
+        const v = yf * yf * (3 - 2 * yf);
+
+        return lerp(lerp(a, b, u), lerp(c, d, u), v);
+      }
+
+      function fbm(x, y, octaves = 4) {
+        let value = 0;
+        let amp = 0.5;
+        let freq = 1;
+        let norm = 0;
+        for (let i = 0; i < octaves; i += 1) {
+          value += valueNoise(x * freq, y * freq) * amp;
+          norm += amp;
+          amp *= 0.52;
+          freq *= 2.04;
+        }
+        return value / norm;
+      }
+
+      const state = {
+        width: 0,
+        height: 0,
+        dpr: 1,
+        last: performance.now(),
+        time: 0,
+        stars: [],
+        meteors: [],
+        hazeSeeds: [],
+        config: null
+      };
+
+      function resize() {
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        state.width = Math.floor(window.innerWidth);
+        state.height = Math.floor(window.innerHeight);
+        canvas.width = Math.floor(state.width * state.dpr);
+        canvas.height = Math.floor(state.height * state.dpr);
+        canvas.style.width = `${state.width}px`;
+        canvas.style.height = `${state.height}px`;
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        rebuildScene();
+      }
+
+      function rebuildScene() {
+        const seed = createSeed();
+        const rand = createPRNG(seed);
+
+        const areaFactor = Math.max(0.7, Math.min(1.8, (state.width * state.height) / (1920 * 1080)));
+        const farCount = Math.round(120 * areaFactor);
+        const midCount = Math.round(42 * areaFactor);
+        const nearCount = Math.round(12 * areaFactor);
+
+        state.config = {
+          seed,
+          flowAngle: -0.28 + (rand() - 0.5) * 0.06,
+          flowSpeed: 10 + rand() * 4,
+          driftBend: 0.035 + rand() * 0.02,
+          expansion: 0.016 + rand() * 0.008,
+          expansionPulse: 0.0024 + rand() * 0.0016,
+          expansionCenterX: 0.58 + (rand() - 0.5) * 0.16,
+          expansionCenterY: 0.52 + (rand() - 0.5) * 0.14,
+          meteorEveryMin: 16,
+          meteorEveryMax: 34,
+        };
+
+        state.stars = [];
+        state.meteors = [];
+        state.hazeSeeds = Array.from({ length: 3 }, () => ({
+          x: rand(),
+          y: rand(),
+          radius: 0.22 + rand() * 0.22,
+          alpha: 0.045 + rand() * 0.035,
+          tint: rand() > 0.5
+            ? [88 + Math.floor(rand() * 18), 118 + Math.floor(rand() * 24), 210 + Math.floor(rand() * 24)]
+            : [120 + Math.floor(rand() * 18), 108 + Math.floor(rand() * 18), 178 + Math.floor(rand() * 22)]
+        }));
+
+        const addStar = (depthMin, depthMax, radiusMin, radiusMax, alphaMin, alphaMax, twinkle, bias = 1) => {
+          const depth = depthMin + rand() * (depthMax - depthMin);
+          const radius = radiusMin + Math.pow(rand(), bias) * (radiusMax - radiusMin);
+          const hue = rand();
+          let color;
+          if (hue < 0.68) color = [255, 255, 255];
+          else if (hue < 0.86) color = [220, 232, 255];
+          else color = [255, 240, 218];
+
+          state.stars.push({
+            x: (rand() - 0.5) * 2.8,
+            y: (rand() - 0.5) * 2.4,
+            depth,
+            radius,
+            alpha: alphaMin + rand() * (alphaMax - alphaMin),
+            twinkle,
+            phase: rand() * TAU,
+            color
+          });
+        };
+
+        for (let i = 0; i < farCount; i += 1) addStar(0.22, 0.46, 0.45, 1.05, 0.22, 0.62, 0.16, 1.8);
+        for (let i = 0; i < midCount; i += 1) addStar(0.48, 0.78, 0.8, 1.65, 0.34, 0.82, 0.28, 1.45);
+        for (let i = 0; i < nearCount; i += 1) addStar(0.82, 1.18, 1.2, 2.6, 0.46, 0.95, 0.38, 1.1);
+
+        scheduleNextMeteor(rand, 0);
+      }
+
+      function scheduleNextMeteor(rand, now) {
+        const delay = state.config.meteorEveryMin + rand() * (state.config.meteorEveryMax - state.config.meteorEveryMin);
+        state.nextMeteorAt = now + delay;
+      }
+
+      function spawnMeteor() {
+        const rand = createPRNG((state.config.seed ^ (Math.floor(state.time * 1000) + 0x9E3779B9)) >>> 0);
+        const angle = state.config.flowAngle + (rand() - 0.5) * 0.28 - 0.08;
+        const speed = 860 + rand() * 420;
+        const length = 90 + rand() * 120;
+        const life = 0.75 + rand() * 0.55;
+        const startY = state.height * (0.12 + rand() * 0.34);
+        const startX = -length - 30 + rand() * (state.width * 0.18);
+        state.meteors.push({
+          x: startX,
+          y: startY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          length,
+          life,
+          age: 0,
+          glow: 0.15 + rand() * 0.1
+        });
+        scheduleNextMeteor(rand, state.time);
+      }
+
+      function update(dt) {
+        state.time += dt;
+
+        if (state.time >= state.nextMeteorAt) {
+          spawnMeteor();
+        }
+
+        state.meteors = state.meteors.filter((meteor) => {
+          meteor.age += dt;
+          meteor.x += meteor.vx * dt;
+          meteor.y += meteor.vy * dt;
+          return meteor.age < meteor.life;
+        });
+      }
+
+      function paintBackground() {
+        const sky = ctx.createLinearGradient(0, 0, 0, state.height);
+        sky.addColorStop(0, '#07101c');
+        sky.addColorStop(0.42, '#030712');
+        sky.addColorStop(1, '#010205');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, state.width, state.height);
+
+        const t = state.time;
+
+        for (const haze of state.hazeSeeds) {
+          const pulse = Math.sin(t * 0.028 + haze.x * 8.4) * 0.5 + 0.5;
+          const x = state.width * haze.x;
+          const y = state.height * haze.y;
+          const radius = Math.max(state.width, state.height) * (haze.radius + pulse * 0.015);
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+          grad.addColorStop(0, `rgba(${haze.tint[0]}, ${haze.tint[1]}, ${haze.tint[2]}, ${(haze.alpha * 0.62).toFixed(4)})`);
+          grad.addColorStop(0.35, `rgba(${haze.tint[0]}, ${haze.tint[1]}, ${haze.tint[2]}, ${(haze.alpha * 0.18).toFixed(4)})`);
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, TAU);
+          ctx.fill();
+        }
+
+        const vignette = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * 0.48,
+          Math.min(state.width, state.height) * 0.12,
+          state.width * 0.5,
+          state.height * 0.5,
+          Math.max(state.width, state.height) * 0.78
+        );
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(0.72, 'rgba(0,0,0,0.12)');
+        vignette.addColorStop(1, 'rgba(0,0,0,0.44)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, state.width, state.height);
+      }
+
+      function paintStars() {
+        const t = state.time;
+        const cfg = state.config;
+        const flowAngle = cfg.flowAngle + Math.sin(t * 0.045) * cfg.driftBend;
+        const flowX = Math.cos(flowAngle) * cfg.flowSpeed;
+        const flowY = Math.sin(flowAngle) * cfg.flowSpeed;
+        const expCenterX = state.width * cfg.expansionCenterX;
+        const expCenterY = state.height * cfg.expansionCenterY;
+        const pulse = Math.sin(t * 0.08) * cfg.expansionPulse;
+
+        for (const star of state.stars) {
+          const baseX = state.width * 0.5 + star.x * state.width * 0.52;
+          const baseY = state.height * 0.5 + star.y * state.height * 0.52;
+
+          const dx = baseX - expCenterX;
+          const dy = baseY - expCenterY;
+          const expansionAmount = (cfg.expansion + pulse) * star.depth * t;
+
+          const x = baseX + flowX * star.depth * t + dx * expansionAmount;
+          const y = baseY + flowY * star.depth * t + dy * expansionAmount;
+
+          if (x < -90 || x > state.width + 90 || y < -90 || y > state.height + 90) {
+            continue;
+          }
+
+          const twinkle = 0.86 + (Math.sin(t * (0.18 + star.twinkle) + star.phase) * 0.5 + 0.5) * star.twinkle;
+          const alpha = clamp(star.alpha * twinkle, 0, 1);
+          const r = star.radius * (0.92 + star.depth * 0.14);
+
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, r * 7);
+          grad.addColorStop(0, `rgba(${star.color[0]}, ${star.color[1]}, ${star.color[2]}, ${Math.min(1, alpha).toFixed(4)})`);
+          grad.addColorStop(0.22, `rgba(${star.color[0]}, ${star.color[1]}, ${star.color[2]}, ${(alpha * 0.16).toFixed(4)})`);
+          grad.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, r * 7, 0, TAU);
+          ctx.fill();
+
+          ctx.fillStyle = `rgba(${star.color[0]}, ${star.color[1]}, ${star.color[2]}, ${Math.min(1, alpha * 0.98).toFixed(4)})`;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, TAU);
+          ctx.fill();
+        }
+      }
+
+      function paintMeteors() {
+        if (state.meteors.length === 0) return;
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+
+        for (const meteor of state.meteors) {
+          const p = meteor.age / meteor.life;
+          const alpha = Math.sin(Math.PI * p) * (0.78 + meteor.glow);
+          const tailX = meteor.x - meteor.vx / Math.hypot(meteor.vx, meteor.vy) * meteor.length;
+          const tailY = meteor.y - meteor.vy / Math.hypot(meteor.vx, meteor.vy) * meteor.length;
+
+          const glow = ctx.createRadialGradient(meteor.x, meteor.y, 0, meteor.x, meteor.y, meteor.length * 0.38);
+          glow.addColorStop(0, `rgba(255, 248, 238, ${(alpha * 0.22).toFixed(4)})`);
+          glow.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(meteor.x, meteor.y, meteor.length * 0.38, 0, TAU);
+          ctx.fill();
+
+          const streak = ctx.createLinearGradient(meteor.x, meteor.y, tailX, tailY);
+          streak.addColorStop(0, `rgba(255,255,255, ${Math.min(1, alpha).toFixed(4)})`);
+          streak.addColorStop(0.2, `rgba(208, 226, 255, ${(alpha * 0.55).toFixed(4)})`);
+          streak.addColorStop(1, 'rgba(208, 226, 255, 0)');
+          ctx.strokeStyle = streak;
+          ctx.lineWidth = 1.1 + Math.sin(Math.PI * p) * 1.8;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(meteor.x, meteor.y);
+          ctx.lineTo(tailX, tailY);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      function render() {
+        paintBackground();
+        paintStars();
+        paintMeteors();
+      }
+
+      function frame(now) {
+        const dt = Math.min(0.05, (now - state.last) / 1000);
+        state.last = now;
+        update(dt);
+        render();
+        requestAnimationFrame(frame);
+      }
+
+      window.addEventListener('resize', resize, { passive: true });
+
+      resize();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
