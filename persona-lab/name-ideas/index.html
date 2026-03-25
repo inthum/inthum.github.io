@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Name Ideas — persona-lab</title>
+  <meta name="description" content="Gerador leve de nomes, títulos e labels curtos para projetos, perfis e conceitos.">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <style>
+    .page-shell {
+      width: min(calc(100% - 40px), 1100px);
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .page-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .page-topbar nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--text-soft);
+      font-size: 0.94rem;
+    }
+
+    .page-topbar a:hover {
+      color: var(--accent);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 22px;
+      margin-top: 28px;
+    }
+
+    .intro-card,
+    .status-card,
+    .form-card,
+    .results-card,
+    .note-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+
+    .eyebrow-inline {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .intro-card h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+      font-weight: 640;
+      max-width: 9ch;
+    }
+
+    .intro-card p,
+    .status-card p,
+    .note-card p {
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    .status-list {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
+      gap: 22px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-row label {
+      font-size: 0.92rem;
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .field-row input,
+    .field-row select {
+      width: 100%;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      font: inherit;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .field-row input:focus,
+    .field-row select:focus {
+      border-color: rgba(32, 74, 120, 0.34);
+      box-shadow: 0 0 0 4px rgba(32, 74, 120, 0.08);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .button-generate {
+      background: linear-gradient(180deg, #1f4e80 0%, #193f67 100%);
+      color: #f7fbff;
+      box-shadow: 0 12px 28px rgba(25, 63, 103, 0.22);
+    }
+
+    .button-reset {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .results-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .results-head h2,
+    .note-card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(31, 78, 128, 0.12);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .result-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .result-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(247,250,254,0.95) 100%);
+    }
+
+    .result-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.94rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .result-card p {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .hint {
+      color: var(--text-faint);
+      font-size: 0.92rem;
+      line-height: 1.7;
+    }
+
+    .note-card {
+      margin-top: 22px;
+    }
+
+    .note-card ul {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    @media (max-width: 920px) {
+      .intro,
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page-shell {
+        width: min(calc(100% - 24px), 1100px);
+        padding-top: 12px;
+      }
+
+      .page-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        border-radius: 28px;
+      }
+
+      .intro-card,
+      .status-card,
+      .form-card,
+      .results-card,
+      .note-card {
+        padding: 22px;
+      }
+
+      .form-actions .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="page-topbar">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <strong>persona-lab</strong>
+          <small>name ideas</small>
+        </span>
+      </a>
+
+      <nav aria-label="Navegação de página">
+        <a href="../">Hub</a>
+        <a href="../social-attitude/">Social Attitude</a>
+        <a href="../bio-generator/">Bio Generator</a>
+        <a href="../mood-check/">Mood Check</a>
+        <a href="../decision-wheel/">Decision Wheel</a>
+      </nav>
+    </header>
+
+    <section class="intro">
+      <article class="intro-card">
+        <p class="eyebrow-inline">Instrument 05</p>
+        <h1>Name Ideas</h1>
+        <p>
+          Um gerador curto para nomes, títulos e labels rápidos.
+          Não inventa uma identidade inteira, mas ajuda a criar direções usáveis.
+        </p>
+      </article>
+
+      <aside class="status-card">
+        <p class="eyebrow-inline">Use cases</p>
+        <p>
+          Funciona bem para projetos, perfis, ferramentas, coleções, canais e pequenos conceitos.
+        </p>
+        <ul class="status-list">
+          <li>Nomes curtos</li>
+          <li>Títulos mais institucionais</li>
+          <li>Labels minimalistas</li>
+          <li>Variações com tom controlado</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="main-grid">
+      <article class="form-card">
+        <p class="eyebrow-inline">Input</p>
+
+        <div class="field-grid">
+          <div class="field-row">
+            <label for="seedInput">Palavra-base</label>
+            <input id="seedInput" type="text" placeholder="Ex.: cosmic, persona, signal, atlas">
+          </div>
+
+          <div class="field-row">
+            <label for="categoryInput">Categoria</label>
+            <select id="categoryInput">
+              <option value="project">Project</option>
+              <option value="tool">Tool</option>
+              <option value="brand">Brand</option>
+              <option value="channel">Channel</option>
+              <option value="collection">Collection</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="toneInput">Tom</label>
+            <select id="toneInput">
+              <option value="clinical">Clinical</option>
+              <option value="minimal">Minimal</option>
+              <option value="creative">Creative</option>
+              <option value="sharp">Sharp</option>
+              <option value="elegant">Elegant</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="styleInput">Estilo</label>
+            <select id="styleInput">
+              <option value="english">English-style</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="latin">Latin-style</option>
+              <option value="technical">Technical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="button button-generate" id="generateButton" type="button">Generate</button>
+          <button class="button button-reset" id="resetButton" type="button">Reset</button>
+        </div>
+      </article>
+
+      <aside class="results-card">
+        <div class="results-head">
+          <h2>Name set</h2>
+          <span class="live-badge">Live</span>
+        </div>
+
+        <div class="result-stack" id="resultStack">
+          <div class="result-card">
+            <strong>Option A</strong>
+            <p class="hint">Preenche os campos e gera o primeiro conjunto.</p>
+          </div>
+          <div class="result-card">
+            <strong>Option B</strong>
+            <p class="hint">Receberás opções curtas e com diferentes ritmos.</p>
+          </div>
+          <div class="result-card">
+            <strong>Option C</strong>
+            <p class="hint">O objetivo é abrir direções, não forçar um nome final.</p>
+          </div>
+          <div class="result-card">
+            <strong>Option D</strong>
+            <p class="hint">Podes depois adaptar ou combinar partes das opções.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="note-card">
+      <p class="eyebrow-inline">Method note</p>
+      <h2>Como usar este gerador</h2>
+      <p>
+        Bons nomes curtos costumam funcionar melhor quando combinam uma base reconhecível com uma variação simples.
+      </p>
+      <ul>
+        <li>Evita nomes longos demais.</li>
+        <li>Prefere ritmo, clareza e alguma memória sonora.</li>
+        <li>Se um nome parecer “quase certo”, trabalha a partir dele.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

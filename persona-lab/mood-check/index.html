@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mood Check — persona-lab</title>
+  <meta name="description" content="Check-in emocional leve para leitura rápida do estado atual.">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <style>
+    .page-shell {
+      width: min(calc(100% - 40px), 1100px);
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .page-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .page-topbar nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--text-soft);
+      font-size: 0.94rem;
+    }
+
+    .page-topbar a:hover {
+      color: var(--accent);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 22px;
+      margin-top: 28px;
+    }
+
+    .intro-card,
+    .status-card,
+    .form-card,
+    .result-card,
+    .note-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+
+    .eyebrow-inline {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .intro-card h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+      font-weight: 640;
+      max-width: 9ch;
+    }
+
+    .intro-card p,
+    .status-card p,
+    .note-card p,
+    .result-body p {
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    .status-list {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
+      gap: 22px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .field-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field-row label {
+      font-size: 0.92rem;
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .scale {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .scale input {
+      display: none;
+    }
+
+    .scale label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .scale label:hover {
+      transform: translateY(-1px);
+      border-color: rgba(32, 74, 120, 0.24);
+    }
+
+    .scale input:checked + label {
+      background: linear-gradient(180deg, #1f4e80 0%, #193f67 100%);
+      border-color: transparent;
+      color: #f7fbff;
+      box-shadow: 0 12px 24px rgba(25, 63, 103, 0.18);
+    }
+
+    .field-row textarea {
+      width: 100%;
+      min-height: 120px;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      font: inherit;
+      padding: 14px 16px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .field-row textarea:focus {
+      border-color: rgba(32, 74, 120, 0.34);
+      box-shadow: 0 0 0 4px rgba(32, 74, 120, 0.08);
+    }
+
+    .scale-hint {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text-faint);
+      font-size: 0.86rem;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .button-check {
+      background: linear-gradient(180deg, #1f4e80 0%, #193f67 100%);
+      color: #f7fbff;
+      box-shadow: 0 12px 28px rgba(25, 63, 103, 0.22);
+    }
+
+    .button-reset {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .result-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .result-head h2,
+    .note-card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(31, 78, 128, 0.12);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .result-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .result-panel {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(247,250,254,0.95) 100%);
+    }
+
+    .result-panel strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.96rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .result-title {
+      margin: 0;
+      font-size: 1.18rem;
+      color: var(--text);
+      font-weight: 620;
+      letter-spacing: -0.02em;
+    }
+
+    .result-note {
+      color: var(--text-faint);
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+
+    .note-card {
+      margin-top: 22px;
+    }
+
+    .note-card ul {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    @media (max-width: 920px) {
+      .intro,
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page-shell {
+        width: min(calc(100% - 24px), 1100px);
+        padding-top: 12px;
+      }
+
+      .page-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        border-radius: 28px;
+      }
+
+      .intro-card,
+      .status-card,
+      .form-card,
+      .result-card,
+      .note-card {
+        padding: 22px;
+      }
+
+      .scale {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .form-actions .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="page-topbar">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <strong>persona-lab</strong>
+          <small>mood check</small>
+        </span>
+      </a>
+
+      <nav aria-label="Navegação de página">
+        <a href="../">Hub</a>
+        <a href="../social-attitude/">Social Attitude</a>
+        <a href="../bio-generator/">Bio Generator</a>
+        <a href="../decision-wheel/">Decision Wheel</a>
+        <a href="../name-ideas/">Name Ideas</a>
+      </nav>
+    </header>
+
+    <section class="intro">
+      <article class="intro-card">
+        <p class="eyebrow-inline">Instrument 03</p>
+        <h1>Mood Check</h1>
+        <p>
+          Um check-in curto para leitura do estado atual. Não tenta explicar toda a tua vida.
+          Serve para nomear o momento com um pouco mais de clareza.
+        </p>
+      </article>
+
+      <aside class="status-card">
+        <p class="eyebrow-inline">Reading model</p>
+        <p>
+          A leitura combina energia, clareza mental, tensão e abertura.
+          O resultado é breve, contido e pensado para uso imediato.
+        </p>
+        <ul class="status-list">
+          <li>Leitura rápida</li>
+          <li>Tom não dramático</li>
+          <li>Sem pretensão clínica</li>
+          <li>Foco no estado atual</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="main-grid">
+      <article class="form-card">
+        <p class="eyebrow-inline">Input</p>
+
+        <div class="field-grid">
+          <div class="field-row">
+            <label>Energia atual</label>
+            <div class="scale" id="energyScale">
+              <input type="radio" name="energy" id="energy1" value="1"><label for="energy1">1</label>
+              <input type="radio" name="energy" id="energy2" value="2"><label for="energy2">2</label>
+              <input type="radio" name="energy" id="energy3" value="3"><label for="energy3">3</label>
+              <input type="radio" name="energy" id="energy4" value="4"><label for="energy4">4</label>
+              <input type="radio" name="energy" id="energy5" value="5"><label for="energy5">5</label>
+            </div>
+            <div class="scale-hint">
+              <span>Muito baixa</span>
+              <span>Muito alta</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label>Clareza mental</label>
+            <div class="scale" id="clarityScale">
+              <input type="radio" name="clarity" id="clarity1" value="1"><label for="clarity1">1</label>
+              <input type="radio" name="clarity" id="clarity2" value="2"><label for="clarity2">2</label>
+              <input type="radio" name="clarity" id="clarity3" value="3"><label for="clarity3">3</label>
+              <input type="radio" name="clarity" id="clarity4" value="4"><label for="clarity4">4</label>
+              <input type="radio" name="clarity" id="clarity5" value="5"><label for="clarity5">5</label>
+            </div>
+            <div class="scale-hint">
+              <span>Difusa</span>
+              <span>Nítida</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label>Tensão interna</label>
+            <div class="scale" id="tensionScale">
+              <input type="radio" name="tension" id="tension1" value="1"><label for="tension1">1</label>
+              <input type="radio" name="tension" id="tension2" value="2"><label for="tension2">2</label>
+              <input type="radio" name="tension" id="tension3" value="3"><label for="tension3">3</label>
+              <input type="radio" name="tension" id="tension4" value="4"><label for="tension4">4</label>
+              <input type="radio" name="tension" id="tension5" value="5"><label for="tension5">5</label>
+            </div>
+            <div class="scale-hint">
+              <span>Baixa</span>
+              <span>Alta</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label>Abertura ao contacto</label>
+            <div class="scale" id="opennessScale">
+              <input type="radio" name="openness" id="openness1" value="1"><label for="openness1">1</label>
+              <input type="radio" name="openness" id="openness2" value="2"><label for="openness2">2</label>
+              <input type="radio" name="openness" id="openness3" value="3"><label for="openness3">3</label>
+              <input type="radio" name="openness" id="openness4" value="4"><label for="openness4">4</label>
+              <input type="radio" name="openness" id="openness5" value="5"><label for="openness5">5</label>
+            </div>
+            <div class="scale-hint">
+              <span>Fechada</span>
+              <span>Aberta</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="contextInput">Nota opcional sobre contexto</label>
+            <textarea id="contextInput" placeholder="Ex.: dia longo, conversa difícil, foco total, cansaço, entusiasmo"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="button button-check" id="checkButton" type="button">Run check</button>
+          <button class="button button-reset" id="resetButton" type="button">Reset</button>
+        </div>
+      </article>
+
+      <aside class="result-card">
+        <div class="result-head">
+          <h2>Current reading</h2>
+          <span class="live-badge">Live</span>
+        </div>
+
+        <div class="result-body">
+          <div class="result-panel">
+            <strong>State</strong>
+            <p class="result-title" id="stateTitle">Sem leitura ainda</p>
+            <p id="stateText">Seleciona os níveis e executa o check.</p>
+          </div>
+
+          <div class="result-panel">
+            <strong>Short guidance</strong>
+            <p id="guidanceText">A orientação curta aparece aqui depois da leitura.</p>
+          </div>
+
+          <div class="result-panel">
+            <strong>Context note</strong>
+            <p class="result-note" id="contextText">Sem nota adicional.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="note-card">
+      <p class="eyebrow-inline">Method note</p>
+      <h2>Como ler o resultado</h2>
+      <p>
+        Este instrumento descreve um estado momentâneo. Não mede personalidade profunda,
+        não substitui reflexão séria e não pretende fazer diagnóstico.
+      </p>
+      <ul>
+        <li>Usa-o como nomeação rápida do momento.</li>
+        <li>O contexto do dia altera bastante a leitura.</li>
+        <li>Uma leitura simples bem feita vale mais do que dramatização.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

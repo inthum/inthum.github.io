@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bio Generator — persona-lab</title>
+  <meta name="description" content="Gerador leve de bios, headlines e identity lines com tom controlado.">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <style>
+    .page-shell {
+      width: min(calc(100% - 40px), 1100px);
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .page-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .page-topbar nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--text-soft);
+      font-size: 0.94rem;
+    }
+
+    .page-topbar a:hover {
+      color: var(--accent);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 22px;
+      margin-top: 28px;
+    }
+
+    .intro-card,
+    .status-card,
+    .form-card,
+    .results-card,
+    .note-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+
+    .eyebrow-inline {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .intro-card h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+      font-weight: 640;
+      max-width: 10ch;
+    }
+
+    .intro-card p,
+    .status-card p,
+    .note-card p {
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    .status-card ul {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
+      gap: 22px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-row label {
+      font-size: 0.92rem;
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .field-row input,
+    .field-row select,
+    .field-row textarea {
+      width: 100%;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      font: inherit;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .field-row textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .field-row input:focus,
+    .field-row select:focus,
+    .field-row textarea:focus {
+      border-color: rgba(32, 74, 120, 0.34);
+      box-shadow: 0 0 0 4px rgba(32, 74, 120, 0.08);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .button-generate {
+      background: linear-gradient(180deg, #1f4e80 0%, #193f67 100%);
+      color: #f7fbff;
+      box-shadow: 0 12px 28px rgba(25, 63, 103, 0.22);
+    }
+
+    .button-reset {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .results-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .results-head h2,
+    .note-card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .result-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .result-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(247,250,254,0.95) 100%);
+    }
+
+    .result-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.94rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .result-card p {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .hint {
+      color: var(--text-faint);
+      font-size: 0.92rem;
+      line-height: 1.7;
+    }
+
+    .note-card {
+      margin-top: 22px;
+    }
+
+    .note-card ul {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      line-height: 1.8;
+    }
+
+    @media (max-width: 920px) {
+      .intro,
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page-shell {
+        width: min(calc(100% - 24px), 1100px);
+        padding-top: 12px;
+      }
+
+      .page-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        border-radius: 28px;
+      }
+
+      .intro-card,
+      .status-card,
+      .form-card,
+      .results-card,
+      .note-card {
+        padding: 22px;
+      }
+
+      .form-actions .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="page-topbar">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <strong>persona-lab</strong>
+          <small>bio generator</small>
+        </span>
+      </a>
+
+      <nav aria-label="Navegação de página">
+        <a href="../">Hub</a>
+        <a href="../social-attitude/">Social Attitude</a>
+        <a href="../mood-check/">Mood Check</a>
+        <a href="../decision-wheel/">Decision Wheel</a>
+        <a href="../name-ideas/">Name Ideas</a>
+      </nav>
+    </header>
+
+    <section class="intro">
+      <article class="intro-card">
+        <p class="eyebrow-inline">Instrument 02</p>
+        <h1>Bio Generator</h1>
+        <p>
+          Um gerador leve de bios, headlines e identity lines.
+          A ideia não é escrever uma biografia inteira, mas produzir
+          linhas curtas, utilizáveis e com tom controlado.
+        </p>
+      </article>
+
+      <aside class="status-card">
+        <p class="eyebrow-inline">Output profile</p>
+        <p>
+          Este instrumento gera várias versões curtas com base no mesmo núcleo:
+          nome, papel, tom, plataforma e palavras-chave.
+        </p>
+        <ul>
+          <li>Bios profissionais</li>
+          <li>Headlines minimalistas</li>
+          <li>Identity lines curtas</li>
+          <li>Texto pronto para adaptar</li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="main-grid">
+      <article class="form-card">
+        <p class="eyebrow-inline">Input</p>
+        <div class="field-grid">
+          <div class="field-row">
+            <label for="nameInput">Nome</label>
+            <input id="nameInput" type="text" placeholder="Ex.: INTHUM">
+          </div>
+
+          <div class="field-row">
+            <label for="roleInput">Papel / função</label>
+            <input id="roleInput" type="text" placeholder="Ex.: Software builder, designer, therapist">
+          </div>
+
+          <div class="field-row">
+            <label for="platformInput">Plataforma</label>
+            <select id="platformInput">
+              <option value="generic">Generic</option>
+              <option value="github">GitHub</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="instagram">Instagram</option>
+              <option value="x">X / short profile</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="toneInput">Tom</label>
+            <select id="toneInput">
+              <option value="professional">Professional</option>
+              <option value="minimal">Minimal</option>
+              <option value="warm">Warm</option>
+              <option value="sharp">Sharp</option>
+              <option value="creative">Creative</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="keywordsInput">Palavras-chave</label>
+            <input id="keywordsInput" type="text" placeholder="Ex.: AI, systems, clarity, design">
+          </div>
+
+          <div class="field-row">
+            <label for="extraInput">Nota adicional</label>
+            <textarea id="extraInput" placeholder="Ex.: local systems, privacy-first, careful design"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="button button-generate" id="generateButton" type="button">Generate</button>
+          <button class="button button-reset" id="resetButton" type="button">Reset</button>
+        </div>
+      </article>
+
+      <aside class="results-card">
+        <div class="results-head">
+          <h2>Generated lines</h2>
+          <span class="live-badge">Live</span>
+        </div>
+
+        <div class="result-stack" id="resultStack">
+          <div class="result-card">
+            <strong>Option A</strong>
+            <p class="hint">Preenche os campos e gera o primeiro conjunto.</p>
+          </div>
+          <div class="result-card">
+            <strong>Option B</strong>
+            <p class="hint">O resultado aqui será curto, legível e adaptável.</p>
+          </div>
+          <div class="result-card">
+            <strong>Option C</strong>
+            <p class="hint">Cada opção muda ligeiramente o ritmo e o enquadramento.</p>
+          </div>
+          <div class="result-card">
+            <strong>Option D</strong>
+            <p class="hint">O objetivo é utilidade rápida, não prosa excessiva.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="note-card">
+      <p class="eyebrow-inline">Method note</p>
+      <h2>Como usar bem este gerador</h2>
+      <p>
+        Uma boa bio curta costuma funcionar melhor quando mistura identidade, função e tom,
+        sem tentar dizer tudo ao mesmo tempo.
+      </p>
+      <ul>
+        <li>Usa palavras-chave curtas e concretas.</li>
+        <li>Evita excesso de grandiosidade.</li>
+        <li>Prefere uma linha limpa que possas realmente usar.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
