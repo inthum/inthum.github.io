@@ -4,12 +4,522 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>INTHUM</title>
+  <meta name="description" content="INTHUM — software, AI, platforms, R&D and digital systems. A professional bridge between intelligence, technology and human value.">
+  <meta name="theme-color" content="#070b17">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <style>
+    :root {
+      --bg: #070b17;
+      --bg-soft: #0d1324;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text: #eef2ff;
+      --muted: #b7c0dd;
+      --line: rgba(255, 255, 255, 0.10);
+      --accent: #8fb7ff;
+      --accent-2: #d7e4ff;
+      --glow: rgba(143, 183, 255, 0.25);
+      --max: 1120px;
+      --radius: 20px;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(143, 183, 255, 0.16), transparent 26%),
+        radial-gradient(circle at 82% 18%, rgba(215, 228, 255, 0.10), transparent 22%),
+        radial-gradient(circle at 70% 75%, rgba(143, 183, 255, 0.12), transparent 20%),
+        linear-gradient(180deg, #04070f 0%, #070b17 40%, #0b1221 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(2px 2px at 12% 18%, rgba(255,255,255,0.85), transparent 70%),
+        radial-gradient(1.5px 1.5px at 22% 72%, rgba(255,255,255,0.65), transparent 70%),
+        radial-gradient(2px 2px at 76% 26%, rgba(255,255,255,0.7), transparent 70%),
+        radial-gradient(1.5px 1.5px at 84% 68%, rgba(255,255,255,0.55), transparent 70%),
+        radial-gradient(1.5px 1.5px at 63% 44%, rgba(255,255,255,0.4), transparent 70%),
+        radial-gradient(1.5px 1.5px at 43% 13%, rgba(255,255,255,0.45), transparent 70%),
+        radial-gradient(1.5px 1.5px at 57% 82%, rgba(255,255,255,0.55), transparent 70%);
+      opacity: 0.8;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wrap {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      font-size: 0.92rem;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.18);
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(143,183,255,0.18) 42%, transparent 55%),
+        radial-gradient(circle at 50% 50%, rgba(143,183,255,0.25), transparent 68%);
+      box-shadow: 0 0 30px rgba(143,183,255,0.18);
+    }
+
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      inset: 8px -5px;
+      border: 1px solid rgba(215,228,255,0.45);
+      border-radius: 50%;
+      transform: rotate(-18deg);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .hero {
+      padding: 52px 0 36px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--glow);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(3rem, 8vw, 6.4rem);
+      line-height: 0.92;
+      letter-spacing: -0.05em;
+    }
+
+    .headline-sub {
+      margin-top: 14px;
+      max-width: 720px;
+      color: var(--accent-2);
+      font-size: clamp(1.05rem, 2vw, 1.35rem);
+      line-height: 1.6;
+    }
+
+    .lead {
+      margin-top: 22px;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--panel-border);
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.28);
+    }
+
+    .button.primary {
+      background: linear-gradient(180deg, rgba(143,183,255,0.16), rgba(143,183,255,0.07));
+      box-shadow: 0 0 0 1px rgba(143,183,255,0.18), 0 10px 30px rgba(12, 19, 38, 0.45);
+    }
+
+    .button.secondary {
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .hero-panel {
+      position: relative;
+      min-height: 420px;
+      border-radius: 28px;
+      border: 1px solid var(--panel-border);
+      background:
+        radial-gradient(circle at 50% 48%, rgba(143,183,255,0.18), transparent 28%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 54%),
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow:
+        0 0 0 30px rgba(255,255,255,0.015),
+        0 0 0 70px rgba(255,255,255,0.02);
+    }
+
+    .hero-panel::after {
+      content: "";
+      position: absolute;
+      inset: 16% 12%;
+      border-radius: 50%;
+      border: 1px solid rgba(215,228,255,0.22);
+      transform: rotate(-22deg);
+    }
+
+    .orbit {
+      position: absolute;
+      top: 49%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ffffff, #b9cfff);
+      box-shadow: 0 0 25px rgba(255,255,255,0.65);
+      transform: translate(130px, -84px);
+    }
+
+    .panel-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 112px;
+      height: 112px;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(143,183,255,0.24) 45%, rgba(7,11,23,0) 72%);
+      filter: drop-shadow(0 0 28px rgba(143,183,255,0.36));
+    }
+
+    .panel-label {
+      position: absolute;
+      left: 26px;
+      right: 26px;
+      bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .section {
+      padding: 34px 0 72px;
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+      letter-spacing: -0.04em;
+    }
+
+    .section-note {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      padding: 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .card-code {
+      font-size: 0.86rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.96rem;
+    }
+
+    .footer {
+      padding: 0 0 34px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .footer-bar {
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .small-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .small-links a:hover {
+      color: var(--text);
+    }
+
+    @media (max-width: 940px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-panel {
+        min-height: 320px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-label {
+        flex-direction: column;
+      }
+
+      h1 {
+        letter-spacing: -0.06em;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>INTHUM</h1>
-  <p>Projetos, experiências e ferramentas.</p>
-  <ul>
-    <li><a href="https://github.com/inthum/persona-lab">Persona Lab</a></li>
-  </ul>
+  <div class="wrap">
+    <header class="nav">
+      <a class="brand" href="/" aria-label="INTHUM home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>INTHUM</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#about">About</a>
+        <a href="#areas">Areas</a>
+        <a href="https://github.com/inthum" target="_blank" rel="noreferrer">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="about">
+        <div>
+          <div class="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            Professional bridge · software · AI · platforms · R&D
+          </div>
+
+          <h1>INTHUM</h1>
+
+          <p class="headline-sub">
+            Intelligence, technology and human value — aligned with precision, freedom and long-term construction.
+          </p>
+
+          <p class="lead">
+            INTHUM is a professional reflection, a technical identity and a bridge.
+            It exists to connect software, artificial intelligence, digital systems and platform building with clear intent and durable architecture.
+          </p>
+
+          <div class="hero-actions">
+            <a class="button primary" href="https://github.com/inthum" target="_blank" rel="noreferrer">View GitHub</a>
+            <a class="button secondary" href="https://github.com/inthum/persona-lab" target="_blank" rel="noreferrer">Explore Persona Lab</a>
+          </div>
+        </div>
+
+        <div class="hero-panel" aria-hidden="true">
+          <div class="panel-core"></div>
+          <div class="orbit"></div>
+          <div class="panel-label">
+            <span>Universe · structure · movement</span>
+            <span>Freedom with direction</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="areas">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Registered scope</h2>
+            <p class="section-note">
+              Brand coverage aligned with software, platforms, business infrastructure, education and applied research.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <article class="card">
+            <div class="card-code">Class 9</div>
+            <h3>Software, AI and digital products</h3>
+            <p>Applications, artificial intelligence systems, software tools and digital devices.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-code">Class 35</div>
+            <h3>Marketplace and business operations</h3>
+            <p>Business management, commercial organisation, visibility and digital market activity.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-code">Class 36</div>
+            <h3>Digital payments and fintech</h3>
+            <p>Payment infrastructure and financial technology direction, including INTHUM Pay.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-code">Class 38</div>
+            <h3>Platforms, communications and streaming</h3>
+            <p>Digital communication layers, platform services and media transmission environments.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-code">Class 41</div>
+            <h3>Education and knowledge delivery</h3>
+            <p>Learning systems, academy models, structured content and educational distribution.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-code">Class 42</div>
+            <h3>Software development, SaaS and R&amp;D</h3>
+            <p>Engineering, research and development, service platforms and long-horizon technical construction.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-bar">
+        <div>© INTHUM</div>
+        <div class="small-links">
+          <a href="https://github.com/inthum" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/inthum/persona-lab" target="_blank" rel="noreferrer">Persona Lab</a>
+        </div>
+      </div>
+    </footer>
+  </div>
 </body>
 </html>
